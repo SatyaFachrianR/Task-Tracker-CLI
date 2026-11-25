@@ -1,34 +1,41 @@
 #!/usr/bin/env node
-const fs = require("fs");
-const path = require("path");
-console.log(process.argv);
+const { addTask } = require("./add");
+const { listTasks } = require("./list");
+const { updateTask } = require("./update");
+const { deleteTask } = require("./delete");
+const { markTask } = require("./mark");
 
-const FILE_PATH = path.join(process.cwd(), "tasks.json");
+function main() {
+  const [command, ...args] = process.argv.slice(2);
 
-function fail(message) {
-  console.error(`Error: ${message}`);
-  process.exit(1);
-}
-
-function loadTasks() {
-  if (!fs.existsSync(FILE_PATH)) {
-    fs.writeFileSync(FILE_PATH, "[]");
-    return [];
+  switch (command) {
+    case "add":
+      addTask(args[0]);
+      break;
+    case "update":
+      updateTask(args[0], args[1]);
+      break;
+    case "delete":
+      deleteTask(args[0]);
+      break;
+    case "mark-in-progress":
+      markTask(args[0], "in-progress");
+      break;
+    case "mark-done":
+      markTask(args[0], "done");
+      break;
+    case "list":
+      listTasks(args[0]);
+      break;
+    default:
+      console.log(`Penggunaan:
+  task-cli add "deskripsi"
+  task-cli update <id> "deskripsi baru"
+  task-cli delete <id>
+  task-cli mark-in-progress <id>
+  task-cli mark-done <id>
+  task-cli list [todo|in-progress|done]`);
   }
-  try {
-    const data = fs.readFileSync(FILE_PATH, "utf-8");
-    return data.trim() === "" ? [] : JSON.parse(data);
-  } catch {
-    fail("tasks.json rusak atau bukan JSON yang valid.");
-  }
 }
 
-function saveTasks(tasks) {
-  fs.writeFileSync(FILE_PATH, JSON.stringify(tasks, null, 2));
-}
-
-function nextId(tasks) {
-  return tasks.length === 0 ? 1 : Math.max(...tasks.map((t) => t.id)) + 1;
-}
-
-console.log(loadTasks());
+main();
